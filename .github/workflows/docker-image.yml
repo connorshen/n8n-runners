@@ -1,18 +1,33 @@
-name: Docker Image CI
+name: Build & Push n8n Runner to GHCR
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
+    # 关键：给GITHUB_TOKEN授予推送镜像的权限（必须加）
+    permissions:
+      packages: write  # 允许推送GHCR镜像
+      contents: read   # 允许拉取仓库代码（默认已有，可省略）
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 登录GHCR（用内置的GITHUB_TOKEN）
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io               # GHCR的域名
+          username: ${{ github.actor }}   # 当前触发流水线的GitHub用户名（自动获取）
+          password: ${{ secrets.TOKEN }}  # 内置密钥，无需手动配置
+
+      # 构建并推送镜像到GHCR
+      - name: Build and push
+        run: |
+          # 镜像名格式：ghcr.io/你的GitHub用户名/镜像名:标签
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/n8n-runners:latest
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
