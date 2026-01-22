@@ -27,6 +27,6 @@ jobs:
       - name: Build and push
         run: |
           # 镜像名格式：ghcr.io/你的GitHub用户名/镜像名:标签
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/n8n-runners:latest
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/n8n-runners:2.5.0
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
